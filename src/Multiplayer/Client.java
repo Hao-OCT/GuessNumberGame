@@ -24,9 +24,7 @@ public class Client {
 			System.out.println(in.readUTF());
 			out.writeUTF(reader.readLine());
 			System.out.println(in.readUTF());
-			while (!start) {
-				start=in.readBoolean();
-			}System.out.println(in.readUTF());
+			//System.out.println(in.readUTF());
 			System.out.println(in.readUTF());
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block

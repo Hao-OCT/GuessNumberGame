@@ -7,19 +7,20 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 public class Server {
-	protected static int count = 0;
-	protected static List<Thread> clients;
+	protected static List<ServerThread> clients;
+	protected static boolean canStart = false;
 
 	public static void main(String[] args) {
 		ServerSocket serverSocket;
 		Socket socket = null;
 		DataInputStream in;
 		DataOutputStream out;
-		clients=new ArrayList<Thread>();
+		clients = new ArrayList<ServerThread>();
+
 		try {
 			serverSocket = new ServerSocket(61099);
 			System.out.println("The Server is running...");
@@ -28,7 +29,14 @@ public class Server {
 				in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 				out = new DataOutputStream(socket.getOutputStream());
 				out.writeUTF("Please enter your first name to register");
-				new ServerThread(socket, in.readUTF()).start();
+				ServerThread thread = new ServerThread(socket, in.readUTF());
+				clients.add(thread);
+
+				System.out.println("The current number of clients is " + clients.size());
+				out.writeUTF("Please wait for the next round...");
+
+				thread.start();
+
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -40,37 +48,60 @@ public class Server {
 class ServerThread extends Thread {
 	private Socket socket;
 	private String text;
-
 	private DataInputStream in;
 	private DataOutputStream out;
+	private long startTime;
+	private long elapsedTime;
 
 	public ServerThread(Socket socket, String text) {
 		this.socket = socket;
 		this.text = text;
 		setDaemon(true);
+		this.setName(text);
+	}
+
+	public long getStartTime() {
+		return startTime;
+	}
+
+	public void setStartTime(long startTime) {
+		this.startTime = startTime;
+	}
+
+	public long getElapsedTime() {
+		return elapsedTime;
+	}
+
+	public void setElapsedTime(long elapsedTime) {
+		this.elapsedTime = elapsedTime;
 	}
 
 	public void run() {
 		try {
-			Server.count++;
-			Server.clients.add(this);
-			System.out.println("The current number of clients is " + Server.count);
 			in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 			out = new DataOutputStream(socket.getOutputStream());
-			
-			out.writeUTF("Please wait for the next round...");
-			System.out.println("Thread " + text + " is working");
-			this.setName(text);
-			while (Server.count < 3) {
-				out.writeBoolean(false);
+			if (Server.clients.size() == 1) {
+				Server.clients.get(0).setStartTime(System.currentTimeMillis());
+				while (Server.clients.get(0).getElapsedTime() < 0.2 * 60 * 1000) {
+					Server.clients.get(0).setElapsedTime((new Date()).getTime() - Server.clients.get(0).getStartTime());
+				}
+			} else if (Server.clients.size() > 1 && Server.clients.size() <= 3) {
+				this.sleep((long) (0.2 * 60 * 1000 - Server.clients.get(0).getElapsedTime()));
+			} else {
+				this.sleep(10 * 60 * 1000);
 			}
-			out.writeBoolean(true);
 			String names = "";
-			for(int i=0;i<Server.clients.size();i++) {
-				names+=Server.clients.get(i).getName()+" ";
+			int max = Server.clients.size();
+			if (max > 3)
+				max = 3;
+			for (int i = 0; i < max; i++) {
+				names += Server.clients.get(i).getName() + " ";
 			}
-			out.writeUTF("Game starts and the player lists: "+names);
-		} catch (IOException e) {
+			out.writeUTF("Game starts and the player list: " + names);
+
+			// Now the game start.
+
+		} catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
