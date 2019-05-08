@@ -45,7 +45,7 @@ public class Server {
 	}
 }
 
-class ServerThread extends Thread {
+class ServerThread2 extends Thread {
 	private Socket socket;
 	private String text;
 	private DataInputStream in;
