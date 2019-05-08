@@ -13,6 +13,7 @@ public class ServerThread extends Thread {
 	private DataInputStream in;
 	private DataOutputStream out;
 	private String name = "";
+	private long timestamp;
 
 	public ServerThread(Socket socket) {
 		this.socket = socket;
@@ -89,17 +90,17 @@ public class ServerThread extends Thread {
 			if (name.equals(Server.nameList.get(0))) {
 				Server.randomNum = randomGenerator();
 				countdown();
-			}else {
-				//clients can reach here are in the game
-				this.sleep((long) (0.2 * 60 * 1000-Server.elapsedTime));
+			} else {
+				// clients can reach here are in the game
+				this.sleep((long) (0.2 * 60 * 1000 - Server.elapsedTime));
 			}
 			String names = "";
 			for (int i = 0; i < Server.playerNum; i++) {
 				names += Server.nameList.get(i) + " ";
-			}out.writeUTF("Game starts and the player list: " + names);
-			Server.gameStart=true;
-			//now the game starts..
-			guess();
+			}
+			out.writeUTF("Game starts and the player list: " + names);
+			Server.gameStart = true;
+			// now the game starts..
 		} catch (IOException | InterruptedException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -122,7 +123,7 @@ public class ServerThread extends Thread {
 		int times = 4;
 		in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 		out = new DataOutputStream(socket.getOutputStream());
-		//the same as the single version
+		// the same as the single version
 		String larger = "Your guess is larger than the number, remaining chance is ";
 		String smaller = "Your guess is smaller than the number, remaining chance is ";
 		String answer = "You are running out of the chances, and the answer is ";
@@ -132,6 +133,7 @@ public class ServerThread extends Thread {
 			times--;
 			if (guess == Server.randomNum) {
 				out.writeBoolean(true);
+				Server.timeMap.put(name, (int) System.currentTimeMillis());
 				out.writeUTF("Congratulations!");
 				break;
 			} else if (guess > Server.randomNum) {
@@ -154,13 +156,39 @@ public class ServerThread extends Thread {
 		}
 	}
 
+	public void announceWinner() {
+		try {
+			in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+			out = new DataOutputStream(socket.getOutputStream());
+			String winner="";
+			if (Server.timeMap.isEmpty()) {
+				out.writeUTF("No one wins...");
+			} else {
+				int min = (int) Server.elapsedTime;
+				for (String key : Server.timeMap.keySet()) {
+					if (Server.timeMap.get(key) < min) {
+						min = Server.timeMap.get(key);
+						winner = key;
+					}
+				}//TODO
+				//after all the player finish, show the result.
+				out.writeUTF("The winner of this round is " + winner);
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	public void run() {
 
 		try {
-			
+
 			registerName();
 			checkQueue();
 			gameON();
+			guess();
+			announceWinner();
 			// Now the game start.
 
 		} catch (IOException e) {

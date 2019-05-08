@@ -36,7 +36,7 @@ public class Client {
 				times--;
 				if (times == 0)
 					break;
-			}
+			}System.out.println(in.readUTF());
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
