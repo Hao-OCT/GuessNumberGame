@@ -16,6 +16,8 @@ public class Client {
 		DataOutputStream out = null;
 		DataInputStream in = null;
 		boolean start = false;
+		boolean success = false;
+		int times = 4;
 		try {
 			socket = new Socket("localhost", 61099);
 			reader = new BufferedReader(new InputStreamReader(System.in));
@@ -24,8 +26,17 @@ public class Client {
 			System.out.println(in.readUTF());
 			out.writeUTF(reader.readLine());
 			System.out.println(in.readUTF());
-			//System.out.println(in.readUTF());
 			System.out.println(in.readUTF());
+			System.out.println(in.readUTF());
+			while (!success) {
+				out.writeInt(Integer.parseInt(reader.readLine()));
+				out.flush();
+				success = in.readBoolean();
+				System.out.println(in.readUTF());
+				times--;
+				if (times == 0)
+					break;
+			}
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
