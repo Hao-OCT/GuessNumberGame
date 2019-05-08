@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Server {
 	protected static List<String> nameList = new ArrayList<String>();
@@ -14,6 +16,7 @@ public class Server {
 	protected static int randomNum=-1;
 	protected static long startTime;
 	protected static long elapsedTime;
+	protected static Map<String,Integer> timeMap = new HashMap<String,Integer>();
 
 	public static void main(String[] args) {
 		final int port = 61099;
