@@ -13,7 +13,7 @@ public class ServerThread extends Thread {
 	private DataInputStream in;
 	private DataOutputStream out;
 	private String name = "";
-	private long timestamp;
+	private boolean done = false;
 
 	public ServerThread(Socket socket) {
 		this.socket = socket;
@@ -100,6 +100,7 @@ public class ServerThread extends Thread {
 			}
 			out.writeUTF("Game starts and the player list: " + names);
 			Server.gameStart = true;
+			Server.doneMap.put(this.name, this.done);
 			// now the game starts..
 		} catch (IOException | InterruptedException e1) {
 			// TODO Auto-generated catch block
@@ -127,21 +128,25 @@ public class ServerThread extends Thread {
 		String larger = "Your guess is larger than the number, remaining chance is ";
 		String smaller = "Your guess is smaller than the number, remaining chance is ";
 		String answer = "You are running out of the chances, and the answer is ";
-		int guess = -1;
+		String guess = "";
 		while (times > 0) {
-			guess = in.readInt();
+			guess = in.readUTF();
 			times--;
-			if (guess == Server.randomNum) {
+			if (guess.equals("e")) {
+				out.writeBoolean(true);
+				out.writeUTF("You exit this round");
+				break;
+			} else if (Integer.parseInt(guess) == Server.randomNum) {
 				out.writeBoolean(true);
 				Server.timeMap.put(name, (int) System.currentTimeMillis());
-				out.writeUTF("Congratulations!");
+				out.writeUTF("You made the right guess!");
 				break;
-			} else if (guess > Server.randomNum) {
+			} else if (Integer.parseInt(guess) > Server.randomNum) {
 				if (times != 0) {
 					out.writeBoolean(false);
 					out.writeUTF(larger + times);
 				} else {
-					out.writeBoolean(false);
+					out.writeBoolean(true);
 					out.writeUTF(answer + Server.randomNum);
 				}
 			} else {
@@ -149,9 +154,21 @@ public class ServerThread extends Thread {
 					out.writeBoolean(false);
 					out.writeUTF(smaller + times);
 				} else {
-					out.writeBoolean(false);
+					out.writeBoolean(true);
 					out.writeUTF(answer + Server.randomNum);
 				}
+			}
+		}
+		done=true;
+		Server.doneMap.replace(this.name, false, this.done);
+		while (!Server.gameOver) {
+			if (Server.doneMap.containsValue(false)) {
+				Server.gameOver = false;
+				out.writeBoolean(false);
+			} else {
+				Server.gameOver = true;
+				out.writeBoolean(true);
+				break;
 			}
 		}
 	}
@@ -160,7 +177,7 @@ public class ServerThread extends Thread {
 		try {
 			in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 			out = new DataOutputStream(socket.getOutputStream());
-			String winner="";
+			String winner = "";
 			if (Server.timeMap.isEmpty()) {
 				out.writeUTF("No one wins...");
 			} else {
@@ -170,8 +187,7 @@ public class ServerThread extends Thread {
 						min = Server.timeMap.get(key);
 						winner = key;
 					}
-				}//TODO
-				//after all the player finish, show the result.
+				}
 				out.writeUTF("The winner of this round is " + winner);
 			}
 		} catch (IOException e) {

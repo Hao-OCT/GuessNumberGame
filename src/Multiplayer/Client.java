@@ -18,6 +18,7 @@ public class Client {
 		boolean start = false;
 		boolean success = false;
 		int times = 4;
+		boolean gameOver=false;
 		try {
 			socket = new Socket("localhost", 61099);
 			reader = new BufferedReader(new InputStreamReader(System.in));
@@ -29,14 +30,15 @@ public class Client {
 			System.out.println(in.readUTF());
 			System.out.println(in.readUTF());
 			while (!success) {
-				out.writeInt(Integer.parseInt(reader.readLine()));
+				out.writeUTF(reader.readLine());
 				out.flush();
 				success = in.readBoolean();
 				System.out.println(in.readUTF());
-				times--;
-				if (times == 0)
-					break;
-			}System.out.println(in.readUTF());
+				
+			}while(!gameOver) {
+				gameOver=in.readBoolean();
+			}
+			System.out.println(in.readUTF());
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
