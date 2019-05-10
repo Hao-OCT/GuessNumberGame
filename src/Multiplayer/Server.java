@@ -9,15 +9,16 @@ import java.util.List;
 import java.util.Map;
 
 public class Server {
-	protected static List<String> nameList = new ArrayList<String>();
+	protected static List<String> playerList = new ArrayList<String>();
+	protected static List<String> waitingList = new ArrayList<String>();
 	protected static boolean gameStart=false;
 	protected static boolean gameOver=false;
-	protected static int playerNum=-1;
 	protected static int randomNum=-1;
 	protected static long startTime;
 	protected static long elapsedTime;
 	protected static Map<String,Integer> timeMap = new HashMap<String,Integer>();
 	protected static Map<String,Boolean> doneMap = new HashMap<String,Boolean>();
+	//protected static List<ServerThread> threadList = new ArrayList<ServerThread>();
 
 	public static void main(String[] args) {
 		final int port = 61099;
