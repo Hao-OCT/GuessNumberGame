@@ -31,7 +31,8 @@ public class ServerThread extends Thread {
 			Server.waitingList.add(name);
 
 			out.writeUTF("Please be patient, the game is about to start...");
-			System.out.println("The current number of clients is " + Server.waitingList.size());
+			int total = Server.waitingList.size() + Server.playerList.size();
+			System.out.println("The current number of clients is " + total);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -50,68 +51,19 @@ public class ServerThread extends Thread {
 				Server.playerList.add(Server.waitingList.get(0));
 				Server.waitingList.remove(0);
 			}
-			System.out.println("after " + Server.playerList);
-			System.out.println("after " + Server.waitingList);
-			if (Server.playerList.contains(this.name)) {
-				out.writeUTF("Player " + this.name + ", you are in the coming round");
+			// System.out.println("after " + Server.playerList);
+			// System.out.println("after " + Server.waitingList);
+			//System.out.println(Server.alldone);
+			if (Server.playerList.contains(this.name) ) {
 				out.writeBoolean(true);
+				out.writeUTF("Player " + this.name + ", you are in the coming round");
 				break;
 
 			} else {
-				out.writeUTF("Player " + this.name + ", you are in the waiting list");
 				out.writeBoolean(false);
-				try {
-
-					Thread.sleep(8000);
-
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					this.interrupt();
-				}
 			}
 		}
-//		while (Server.gameStart == false) {
-//			if (Server.playerList.get(0).equals(name)) {
-//				out.writeUTF("Player " + name + ", you are in the coming round");
-//
-//				out.writeBoolean(true);
-//				break;
-//			}
-//
-//			else if (Server.playerList.get(1).equals(name)) {
-//				out.writeUTF("Player " + name + ", you are in the coming round");
-//
-//				out.writeBoolean(true);
-//				break;
-//			} else if (Server.playerList.get(2).equals(name)) {
-//				out.writeUTF("Player " + name + ", you are in the coming round");
-//
-//				out.writeBoolean(true);
-//				break;
-//			} else {
-//				try {
-//					out.writeUTF("Keep waiting in the queue..");
-//
-//					out.writeBoolean(false);
-//					Thread.sleep(5000);
-//				} catch (InterruptedException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//			}
-//		}
-//		while (Server.gameStart == true) {
-//			out.writeUTF("Sorry the game already started, please be patient..");
-//
-//			out.writeBoolean(false);
-//			try {
-//				Thread.sleep(5000);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		}
-//
+
 	}
 
 	public void gameON() {
@@ -150,7 +102,10 @@ public class ServerThread extends Thread {
 		Server.startTime = System.currentTimeMillis();
 		while (Server.elapsedTime < 0.2 * 60 * 1000) {
 			Server.elapsedTime = ((new Date()).getTime() - Server.startTime);
+			//System.out.println(Server.startTime);
+			//System.out.println(Server.elapsedTime);
 		}
+
 	}
 
 	public void guess() throws IOException {
@@ -196,7 +151,7 @@ public class ServerThread extends Thread {
 		Server.doneMap.replace(this.name, false, this.done);
 		// after one thread finish the guess, set the done to true
 		// when all the thread done, then the Map contains all true value.
-		while (!Server.gameOver) {
+		while (Server.gameOver == false) {
 			if (Server.doneMap.containsValue(false)) {
 				Server.gameOver = false;
 				out.writeBoolean(false);
@@ -244,7 +199,7 @@ public class ServerThread extends Thread {
 				out.writeUTF("How dare you type " + reply
 						+ " rather than q or p! But anyway, you won't have another chance");
 			}
-
+		
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -255,16 +210,22 @@ public class ServerThread extends Thread {
 		// remove the name in the nameList
 		// reset the boolean value and wipe the data
 		// Client involved in this round delete one client
+
 		if (Server.playerList.contains(this.name)) {
 			Server.gameStart = false;
-			Server.gameOver = true;
+			Server.gameOver = false;
 			Server.playerList.clear();
 			Server.timeMap.clear();
 			Server.doneMap.clear();
+			Server.startTime=0;
+			Server.elapsedTime=0;
+
 		}
+		this.done = false;
 		// if play again
 		in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 		out = new DataOutputStream(socket.getOutputStream());
+
 		if (this.playAgain) {
 			Server.waitingList.add(this.name);
 			out.writeUTF("Register you in the back of the line..");
@@ -277,14 +238,16 @@ public class ServerThread extends Thread {
 	public void run() {
 
 		try {
+			synchronized (this) {
 
-			registerName();
-			while (!this.isInterrupted()) {
-				checkQueue();
-				gameON();
-				guess();
-				announceWinner();
-				endRound();
+				registerName();
+				while (!this.isInterrupted()) {
+					checkQueue();
+					gameON();
+					guess();
+					announceWinner();
+					endRound();
+				}
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

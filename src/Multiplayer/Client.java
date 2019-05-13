@@ -29,31 +29,42 @@ public class Client {
 			while (playAgain) {
 				playAgain = false;
 				System.out.println(in.readUTF());// Please be patient, the game is about to start
-				System.out.println(in.readUTF()); // player (name), take a deep breath
 				start = in.readBoolean();
 				while (!start) {
-					System.out.println(in.readUTF());
-					System.out.println(start);
+					start = in.readBoolean();
+
+				}
+				System.out.println(in.readUTF()); // player (name)
+
+				// System.out.println(start);
+				while (!start) {
 					start = in.readBoolean();
 				}
 				System.out.println(in.readUTF()); // announce the game starts
 
 				while (!success) {
 					// guess time
+					// System.out.println("enter the guess section");
 					out.writeUTF(reader.readLine());
 					out.flush();
 					success = in.readBoolean();
 					System.out.println(in.readUTF());
 
 				}
+				// System.out.println("done enter the guess section");
+
 				while (!gameOver) {
 					// wait for the announcement
 					gameOver = in.readBoolean();
+					//System.out.println("enter the gameover loop");
 				}
+				//System.out.println(" done the enter the gameover loop");
 				System.out.println(in.readUTF());// announce the winner
 				System.out.println(in.readUTF());// play again or quit
 				out.writeUTF(reader.readLine());// output q or p
 				playAgain = in.readBoolean();
+				success = false;
+				gameOver = false;
 				System.out.println(in.readUTF());
 			}
 

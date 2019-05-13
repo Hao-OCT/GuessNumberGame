@@ -18,7 +18,7 @@ public class Server {
 	protected static long elapsedTime;
 	protected static Map<String,Integer> timeMap = new HashMap<String,Integer>();
 	protected static Map<String,Boolean> doneMap = new HashMap<String,Boolean>();
-	//protected static List<ServerThread> threadList = new ArrayList<ServerThread>();
+
 
 	public static void main(String[] args) {
 		final int port = 61099;
