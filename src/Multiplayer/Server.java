@@ -8,6 +8,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/*  Assignment for Network Programming S1,2019
+ *  @author: Hao Wang (s3690173)
+ *  A.2 Multiplayer version
+ *  The server can handle multiple clients at the 
+ *  same time, and similar to the single version.
+ *  But the server can manage and monitor the game.
+ *  After each round, the server will announce the
+ *  winner of this round and ask the client if they
+ *  want to play again or quit the game.
+ *  
+ *  This is the Server end.
+ */
 public class Server {
 	protected static List<String> playerList = new ArrayList<String>();
 	protected static List<String> waitingList = new ArrayList<String>();
@@ -16,7 +28,7 @@ public class Server {
 	protected static int randomNum=-1;
 	protected static long startTime;
 	protected static long elapsedTime;
-	protected static Map<String,Integer> timeMap = new HashMap<String,Integer>();
+	protected static HashMap<String,Integer> timesMap = new HashMap<String,Integer>();
 	protected static Map<String,Boolean> doneMap = new HashMap<String,Boolean>();
 
 

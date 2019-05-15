@@ -9,6 +9,18 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+/*  Assignment for Network Programming S1,2019
+ *  @author: Hao Wang (s3690173)
+ *  A.2 Multiplayer version
+ *  The server can handle multiple clients at the 
+ *  same time, and similar to the single version.
+ *  But the server can manage and monitor the game.
+ *  After each round, the server will announce the
+ *  winner of this round and ask the client if they
+ *  want to play again or quit the game.
+ *  
+ *  This is the Client end.
+ */
 public class Client {
 	public static void main(String[] args) throws IOException {
 		Socket socket = null;
@@ -20,8 +32,10 @@ public class Client {
 		boolean playAgain = true;
 		boolean start = false;
 		try {
-			socket = new Socket("localhost", 61099);
+			System.out.print("Please input the server address:");
 			reader = new BufferedReader(new InputStreamReader(System.in));
+			String serverAddress = reader.readLine();
+			socket = new Socket(serverAddress, 61099);
 			out = new DataOutputStream(socket.getOutputStream());
 			in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 			System.out.println(in.readUTF());
@@ -36,7 +50,6 @@ public class Client {
 				}
 				System.out.println(in.readUTF()); // player (name)
 
-				// System.out.println(start);
 				while (!start) {
 					start = in.readBoolean();
 				}
@@ -44,21 +57,15 @@ public class Client {
 
 				while (!success) {
 					// guess time
-					// System.out.println("enter the guess section");
 					out.writeUTF(reader.readLine());
 					out.flush();
 					success = in.readBoolean();
 					System.out.println(in.readUTF());
-
 				}
-				// System.out.println("done enter the guess section");
-
 				while (!gameOver) {
 					// wait for the announcement
-					gameOver = in.readBoolean();
-					//System.out.println("enter the gameover loop");
-				}
-				//System.out.println(" done the enter the gameover loop");
+					gameOver = in.readBoolean();					
+				}			
 				System.out.println(in.readUTF());// announce the winner
 				System.out.println(in.readUTF());// play again or quit
 				out.writeUTF(reader.readLine());// output q or p
